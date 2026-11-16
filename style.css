@@ -97,7 +97,6 @@ button {
   color: inherit;
 }
 
-/* Focus */
 :focus-visible {
   outline: 2px solid var(--accent-2);
   outline-offset: 3px;
@@ -125,7 +124,6 @@ html {
   scrollbar-width: thin;
 }
 
-/* Контейнер */
 .container {
   width: 100%;
   max-width: var(--container);
@@ -133,7 +131,6 @@ html {
   padding: 0 20px;
 }
 
-/* Утилиты */
 .gradient-text {
   background: var(--gradient);
   -webkit-background-clip: text;
@@ -255,7 +252,6 @@ html {
   color: var(--text);
 }
 
-/* Burger */
 .burger {
   display: inline-flex;
   flex-direction: column;
@@ -292,7 +288,6 @@ html {
 .burger.is-open span:nth-child(2) { opacity: 0; }
 .burger.is-open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 
-/* Nav */
 .site-nav {
   position: fixed;
   top: 0;
@@ -355,7 +350,6 @@ html {
   width: 100%;
 }
 
-/* Overlay */
 .nav-overlay {
   position: fixed;
   inset: 0;
@@ -419,7 +413,7 @@ html {
 }
 
 /* ============================================================
-   Hero
+   Hero и Статус
    ============================================================ */
 .hero {
   padding: 60px 0 80px;
@@ -470,6 +464,54 @@ html {
   color: var(--text-muted);
   letter-spacing: 0.02em;
   text-transform: uppercase;
+}
+
+/* Статус */
+.hero-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  margin-top: -4px;
+  transition: all var(--transition);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-dim);
+  flex-shrink: 0;
+}
+
+.status-dot.online {
+  background: #10b981;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+  animation: pulse-green 2s infinite;
+}
+
+.status-dot.busy {
+  background: #f59e0b;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+}
+
+.status-dot.sleeping {
+  background: #8b5cf6;
+  box-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
+}
+
+@keyframes pulse-green {
+  0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+  70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
 }
 
 .hero__lead {
@@ -635,7 +677,7 @@ html {
 .project-card__media {
   position: relative;
   width: 100%;
-  aspect-ratio: 16 / 10; /* Жестко задаем пропорции */
+  aspect-ratio: 16 / 10;
   overflow: hidden;
   background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(6, 182, 212, 0.1));
   border-bottom: 1px solid var(--border);
@@ -668,12 +710,11 @@ html {
   box-shadow: 0 4px 16px rgba(139, 92, 246, 0.4);
 }
 
-/* Вот здесь основные исправления */
 .project-card__body {
   padding: 20px;
   display: flex;
   flex-direction: column;
-  flex: 1; /* Тело занимает все оставшееся место */
+  flex: 1;
 }
 
 .project-card__title {
@@ -685,7 +726,7 @@ html {
   font-size: 14.5px;
   color: var(--text-muted);
   line-height: 1.6;
-  margin-bottom: 16px; /* Отступ снизу вместо flex-grow */
+  margin-bottom: 16px;
 }
 
 .project-card__stack {
@@ -707,7 +748,7 @@ html {
 .project-card__links {
   display: flex;
   gap: 10px;
-  margin-top: auto; /* Это прижмет кнопки к самому низу карточки */
+  margin-top: auto;
 }
 
 .project-card__link {
@@ -730,6 +771,7 @@ html {
   border-color: var(--accent-1);
   transform: translateY(-1px);
 }
+
 /* ============================================================
    Process
    ============================================================ */
@@ -986,10 +1028,6 @@ html {
 
   .process {
     grid-template-columns: repeat(2, 1fr);
-  }
-
-  .contacts-grid {
-    grid-template-columns: 1fr;
   }
 
   .site-footer__inner {

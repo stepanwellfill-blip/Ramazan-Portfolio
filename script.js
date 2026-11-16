@@ -3,15 +3,6 @@
 /* ============================================================
    ДАННЫЕ ПРОЕКТОВ
    Сюда добавляй свои проекты.
-   Поля:
-     title       — название
-     description — 1–2 строки
-     stack       — массив технологий
-     image       — имя файла без расширения в assets/images/
-                   (например, 'project-1' → project-1.webp / project-1.png)
-     demo        — ссылка на демо ('#' пока нет)
-     github      — ссылка на репозиторий ('#' пока нет)
-     soon        — true, если проект ещё не готов (показывается бейдж "Скоро")
    ============================================================ */
 const PROJECTS = [
   {
@@ -37,7 +28,7 @@ const PROJECTS = [
     description: 'Python-скрипт для сбора новостей с фильтрацией по ключевым словам. Экспорт в CSV и JSON, логирование и обработка ошибок.',
     stack: ['Python', 'requests', 'BeautifulSoup', 'CSV/JSON'],
     image: 'project-3',
-    demo: '#', // Демо-версии нет, это консольный скрипт
+    demo: '#', // У парсера нет веб-интерфейса
     github: 'https://github.com/stepanwellfill-blip/news-parser',
     soon: false,
   },
@@ -61,28 +52,7 @@ function escapeHtml(str) {
   }[ch]));
 }
 
-function svgDataUri(svg) {
-  return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
-}
-
-/* Плейсхолдер для аватара: градиентный круг с инициалом */
-function avatarPlaceholder(letter) {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
-    <defs>
-      <linearGradient id="ag" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stop-color="#6366f1"/>
-        <stop offset="0.5" stop-color="#8b5cf6"/>
-        <stop offset="1" stop-color="#06b6d4"/>
-      </linearGradient>
-    </defs>
-    <rect width="200" height="200" fill="url(#ag)"/>
-    <text x="100" y="108" text-anchor="middle" dominant-baseline="middle"
-      font-family="Manrope, Inter, Arial, sans-serif" font-size="92" font-weight="700" fill="#ffffff">${escapeHtml(letter)}</text>
-  </svg>`;
-  return svgDataUri(svg);
-}
-
-/* Плейсхолдер для карточки проекта: градиентный прямоугольник с иконкой кода */
+/* Плейсхолдер для карточки проекта (если нет картинки) */
 function projectPlaceholder() {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 240">
     <defs>
@@ -98,7 +68,7 @@ function projectPlaceholder() {
       <path d="M215 88 L185 152"/>
     </g>
   </svg>`;
-  return svgDataUri(svg);
+  return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
 }
 
 /* ============================================================
@@ -112,8 +82,6 @@ function renderProjects() {
     const title = escapeHtml(p.title);
     const badge = p.soon ? '<span class="project-card__badge">Скоро</span>' : '';
     const stack = (p.stack || []).map((s) => `<li>${escapeHtml(s)}</li>`).join('');
-
-    // Берем SVG-плейсхолдер из функции, которую мы писали выше
     const fallbackSvg = projectPlaceholder();
 
     return `
@@ -132,8 +100,8 @@ function renderProjects() {
           <p class="project-card__desc">${escapeHtml(p.description || '')}</p>
           <ul class="project-card__stack">${stack}</ul>
           <div class="project-card__links">
-            <a href="${escapeHtml(p.demo || '#')}" class="project-card__link">Демо</a>
-            <a href="${escapeHtml(p.github || '#')}" class="project-card__link">GitHub</a>
+            <a href="${escapeHtml(p.demo || '#')}" class="project-card__link" target="_blank" rel="noopener noreferrer">Демо</a>
+            <a href="${escapeHtml(p.github || '#')}" class="project-card__link" target="_blank" rel="noopener noreferrer">GitHub</a>
           </div>
         </div>
       </article>
@@ -142,34 +110,49 @@ function renderProjects() {
 }
 
 /* ============================================================
-   Подстановка SVG, если файлы картинок не найдены
+   Динамический статус (Онлайн / Занят / Сплю)
    ============================================================ */
-function initImageFallbacks() {
-  // 1. Ловим ошибки для картинок, которые сломаются в будущем
-  document.addEventListener(
-    'error',
-    (e) => {
-      const el = e.target;
-      if (!el || el.tagName !== 'IMG') return;
-      if (!el.dataset.fallback) return;
-      if (el.dataset.fallbackApplied === '1') return;
+function updateStatus() {
+  const dot = document.getElementById('status-dot');
+  const text = document.getElementById('status-text');
+  if (!dot || !text) return;
 
-      el.dataset.fallbackApplied = '1';
-      if (el.dataset.fallback === 'avatar') {
-        el.src = avatarPlaceholder(el.dataset.fallbackText || 'Р');
-      } else {
-        el.src = projectPlaceholder();
-      }
-    },
-    true
-  );
+  const now = new Date();
+  const day = now.getDay(); // 0 = Воскресенье, 1 = Понедельник ... 6 = Суббота
+  const hour = now.getHours(); // Текущий час (0-23)
 
-  // 2. Ловим картинки, которые УЖЕ сломались до запуска скрипта
-  document.querySelectorAll('img[data-fallback]').forEach((img) => {
-    if (img.complete && img.naturalWidth === 0) {
-      img.dispatchEvent(new Event('error'));
+  let status = 'offline';
+  let label = 'Офлайн';
+
+  // Выходные (Суббота и Воскресенье)
+  if (day === 0 || day === 6) {
+    if (hour >= 10 && hour < 23) {
+      status = 'online';
+      label = 'Готов к работе';
+    } else {
+      status = 'sleeping';
+      label = 'Сплю (выходной)';
     }
-  });
+  } 
+  // Будни (Понедельник - Пятница)
+  else {
+    if (hour >= 16 && hour < 23) {
+      status = 'online';
+      label = 'Готов к работе';
+    } else if (hour >= 23 || hour < 6) {
+      status = 'sleeping';
+      label = 'Сплю';
+    } else if (hour >= 6 && hour < 8) {
+      status = 'busy';
+      label = 'Собираюсь в школу';
+    } else if (hour >= 8 && hour < 16) {
+      status = 'busy';
+      label = 'Занят (учёба)';
+    }
+  }
+
+  text.textContent = label;
+  dot.className = 'status-dot ' + status;
 }
 
 /* ============================================================
@@ -282,7 +265,6 @@ function initNavObserver() {
   const sections = document.querySelectorAll('main section[id]');
   const links = document.querySelectorAll('.site-nav__link');
   if (!sections.length || !links.length) return;
-
   if (!('IntersectionObserver' in window)) return;
 
   const observer = new IntersectionObserver(
@@ -361,7 +343,6 @@ function initYear() {
    Инициализация
    ============================================================ */
 document.addEventListener('DOMContentLoaded', () => {
-  initImageFallbacks();
   renderProjects();
   initRevealObserver();
   initHeaderScroll();
@@ -370,4 +351,8 @@ document.addEventListener('DOMContentLoaded', () => {
   initNavObserver();
   initCopyEmail();
   initYear();
+  updateStatus(); // Запуск статуса
+  
+  // Обновляем статус каждую минуту, чтобы он менялся сам
+  setInterval(updateStatus, 60000); 
 });
